@@ -1,0 +1,201 @@
+创建git的身份信息
+1.$git config --global user.name "night_raid"         
+2.$git config --global user.email "1321284045@qq.com"
+
+创建git的仓库repository
+$mkdir xxx
+$cd xxx
+$pwd 
+$git init #初始化仓库xx文件夹就是整个仓库
+
+添加文件
+$git add  xx.txt               #把文本xx.txt提交到stage(暂存区)
+$git commit -m "add xx.txt"    #把stage里面的文件提交到master(分支) 
+$git status                    #查看当前的仓库是否有改动
+$git diff                      #查看仓库具体修改的那些东西
+$git log                       #显示出在分支的提交的不同版本的数据
+$git log --pretty="onelie"     #省略信息输出
+
+返回到指定的版本
+$git reset --hard HEAD^       #返回到上一个版本 .HEAD^^(返回到往上的第二回个版本)
+$git reset --hard HEAD~100    #返回往上的第一百个版本
+$git log                      #查看当前已近不存在最新版了
+$git reflog                   #查看命令使用的记录
+$git reset --hard 2312123c    #返回到当前最新版(假设2312123c就是最新版的序号)
+
+撤销修改和提交的方法
+
+$git checkout -- xx.txt        #撤销对工作xx.txt的修改(前提是没有提交到stage)
+$git rm  test.txt              #删除test.txt 
+$git commit -m "remove xx.txt" #提交删除的动作到分支(master)以备恢复删除
+$git checkout -- xx.txt        #回到删除前的状态
+#git reset -- HEAD xx.txt      #丢弃提交到暂存区的xx.txt
+ 
+同步远程的git服务器
+$ssh-keygen -t rsa -C "1321284045@qq.com"  #生成公钥和私钥在当前的用户文件夹下.shh
+ 然后把公钥传到github上面                                                        |__id_rsa      私钥
+                                                                                 |__id_rsa.pub  公钥
+$git remote add origin git@github.com:nightraidd/easy_email.py  
+$git pull --rebase origin master   #将远程的仓库同步到本地，因为有readme.md
+$git push -u origin master         #将本地的文件同步到远程仓库
+$git push origin master            #第二次同步远程数据库origin本地分支，master远程分支
+$git clone git@github.com:nightraidd/easy_email.py   #克隆远程文件夹到本地
+
+查看远程仓库的状态
+$git  remote -v                   #查看远程长裤关联的origin
+$git remote                       #查看目前有哪些分支
+$git remote rename origin origin2 #更改分支origin的名字
+
+创建并删除分支
+$git checkout -b dev     #创建并切换到分支dev
+$git branch              #查看当前分支
+$git add test.txt 
+$git commit -m "modified test.txt in first line" #在分支dev中对文件操作一波
+$git checkout master     #回到当前的主分支
+$git log                 #发现分支里面并没有modified test.txt in first line这个时间点说明主分支还在上一个节点
+$git merge  dev          #合并当前的dev到主分支
+$git branch -d dev       #删除dev分支
+$git branch  xx          #创建xx分支
+
+解决分支冲突
+$git checkout -b "feature1"   #创建分支feature1
+$echo "Creating a new branch is quick & simple." >>test.txt
+$git add test.txt
+$git commit -m "create line1 by feature1"
+$git checkout master         #切换到主分支
+$echo "Creating a new branch is quick and simple." >>test.txt
+$git add test.txt 
+$cat test.txt 
+Creating a new branch is quick and simple.  因HEAD在feature1分支上所以看不到前面的一句话
+$git commit -m "create line1 by master"
+$git merge feature1
+Auto-merging test.txt
+CONFLICT (content): Merge conflict in test.txt
+Automatic merge failed; fix conflicts and then commit the result. #提示要手动修改解决冲突然后提交
+$cat test.txt
+<<<<<<< HEAD
+Creating a new branch is quick & simple.
+=======
+Creating a new branch is quick AND simple.
+>>>>>>> feature1
+删除提示内容重新提交
+$git add test.txt
+$git commmit -m "combine master and feature1"
+如果是不同分支完成不同文件就不需要手动修改自动完成合并
+
+分支管理策略
+通常，合并分支时，如果可能，Git会用Fast forward模式，但这种模式下，
+删除分支后，会丢掉分支信息。
+如果要强制禁用Fast forward模式，Git就会在merge时生成一个新的commit，
+这样，从分支历史上就可以看出分支信息。
+$git checkout -b dev
+$git add test.txt
+$git commit -m "modifief test in branch dev"
+$git checkout master
+$git merge --no-ff -m "merge with no-ff"  dev   #--no-ff 就是禁用Fast foward 模式
+$git log --graph --pretty=oneline --abbrev-commit   
+
+bug分支之隐藏分支
+有个master分支上有dev分支正在工作需要一天后完成并提交，但是master上面有个bug急需修复，
+现在不能提交dev方法是隐藏分支 stash,登修复bug后急需完成任务
+$git checkout -b dev 
+$echo "ssssss">>test.txt #在分支dev上面修改test文件
+$git stash               #我要去修复master的bug先隐藏分支dev
+$git checkout master     
+$git status              #不会发现有dev修改的记录
+$echo "xxxxxx">test.txt  #修改test文件内容.
+$git add test.txt 
+$git commit -m "modified test at master" #提交master的修改
+$git checkout dev        #继续返回dev工作
+$git stash list 
+stash@{0}: WIP on dev: 6224937 add merge
+$git stash apply           #可以恢复但是不会删除stash内容
+$git stash pop             #恢复并删除内容
+$git stash list            #不会看到任何内容
+$git stash apply stash@{0} #恢复指定的stash
+
+feature 分支之强行删除未合并的分支
+$git branch -D dev   #dev就是没有合并岛主分支的分支
+
+多人协作
+$git push origin master  #提交主分支
+$git checkout -b dev     #创建并切换到dev分支
+$git push origin dev     #提交dev分支到git服务器
+$cd ~/Desktop            #切换到宁一个目录
+$git clone git@github.com:nightraid/test.git  #克隆test目录到另一台电脑，前提是加入公钥
+$cd test    
+$git branch                        #查看当前分支只有master，因为没有同步dev到本地
+$git checkout -b dev origin/dev    #把远程的dev分支同步到本地dev分支，并切换到dev分支        
+$git push origin dev               #在克隆文件夹test下提交分支dev到git服务器
+$cd  ./                            #回到工作区文件夹
+$git checkout dev                  #切换到dev分区，并工作
+$git push origin dev               #提交dev分区到git服务器发生错误,因为我们在git已经有最新的devit pull也失败了，原                                     因是没有指定本地dev分支与远程origin/dev分支的链接，根据提示，设置dev和origin/dev的链接：
+$git branch  --set-upstream dev origin/dev   #建立与git服务器dev链接到本地dev
+$git pull                                    #把远程dev和本地的dev比较
+$git add test.txt   
+$git commit -m "xxxx"                        #重新提交到dev
+$git push origin dev                         #同步本地的dev到远程的dev
+
+创建标签tag
+$git tag v1.0                               #对最新的提交打上标签v1.0
+$git tag v0.9 23122312322                   #给某个commit版本打上标签
+$git tag                                    #显示当前标签
+$git show v1.0                              #显示标签v1.0的详细信息
+$git tag -a v0.1 -m "version 0.1 released" 3628164         #附加上说明      -a:表示标签名 -s:加密
+$git tag -s v0.2 -m "signed version 0.2 released" fec145a  #加上pgp标签
+$git tag -d v1.0                            #删除某个标签
+$git push origin v1.0                       #推送某个标签到远程
+$git push origin --tags                     #推送所有未推送的标签到远程
+$git tag -d v1.0                           
+$git push origin :refs/tags/v1.0            #删除远程标签包含这两部
+
+自定义git
+git config --global color.ui true
+
+忽略特殊文件 
+建立一个.gitignore文件把不需要的文件放进去，或者运行产生的缩略图和.css,.pyc等等
+$touch .gitignore
+$vim .gitignore
+# Windows:
+  Thumbs.db
+  ehthumbs.db
+  Desktop.ini
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+$git add .gitignore 
+$git commit -m "touch ignore file"  #提交到分支
+$ git add -f App.class              #由于被忽视一般方法无法添加，所以强制添加 -f
+$ git check-ignore -v App.class     #检查是否有语法问题
+
+配置别名
+$git config --global alias.st status
+$git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen (%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+每个仓库的Git配置文件都放在.git/config文件中：
+而当前用户的Git配置文件放在用户主目录下的一个隐藏文件.gitconfig中：
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+ 
+
+
+  
